@@ -1,0 +1,21 @@
+.container
+  h1 Pedal-Board Prototypes
+.pedal(ng-repeat='pedal in pedals.testPedal')
+  .light
+    .checkLight(ng-class='{on: pedal.on}')
+    p check
+  ul.knobContainer
+    li(ng-repeat='knob in pedal.knobs')
+      .knob
+        .currentVal {{knob.value}}
+        .name {{knob.name}}
+        input.range(ng-model='knob.value'
+                    type='range'
+                    step=1
+                    min='{{knob.lowRange}}'
+                    max='{{knob.highRange}}'
+                    value='{{knob.value}}')
+  .bottomHalf(ng-click='pedal.on = !pedal.on')
+    h1 {{pedal.name}}
+    h3 {{pedal.type}}
+    .stompBox
