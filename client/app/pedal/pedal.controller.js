@@ -1,10 +1,26 @@
 (function() {
 'use strict';
 
-function PedalsController() {
+function PedalsController(connect) {
+
   console.log('hello world2');
   var vm = this;
-  vm.testString = 'hello';
+  vm.audioCtx = connect.audioCtx;
+  console.log(connect.audioCtx);
+
+  vm.playing = false;
+  vm.toggle = function(){
+    console.log(vm.playing);
+    console.log(vm.audioCtx);
+    if (vm.audioCtx.state === 'running'){
+      vm.audioCtx.suspend();
+    } else if (vm.audioCtx.state === 'suspended'){
+      vm.audioCtx.resume();
+    }
+    vm.playing = !vm.playing;
+    return vm.playing;
+  };
+
   function overdriveLevel() {
       console.log('Overdrive Level');
   }
@@ -54,5 +70,6 @@ function PedalsController() {
     }];
   }
 
-  angular.module('pedalBoardApp').controller('PedalsController', PedalsController);
+  angular.module('pedalBoardApp').controller('PedalsController', ['connect', PedalsController]);
+
   })();

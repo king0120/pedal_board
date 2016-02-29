@@ -1,5 +1,7 @@
 .container
-  h1 Pedal-Board Prototypes
+  h1 Pedal-Board
+
+  h4 {{pedals}}
 .pedal(ng-repeat='pedal in pedals.testPedal')
   .light
     .checkLight(ng-class='{on: pedal.on}')
@@ -19,3 +21,6 @@
     h1 {{pedal.name}}
     h3 {{pedal.type}}
     .stompBox
+
+div(ng-click='pedals.toggle()')
+  i.fa.fa-5x(ng-class='pedals.playing ? "fa-volume-off" :  "fa-volume-up"' )
