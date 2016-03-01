@@ -1,13 +1,23 @@
 body{
   background: #455a64;
 }
-
+.canvasContainer{
+  width: 100%;
+  #visualizer{
+    width: 100%;
+    height: 200px;
+    margin: 0 auto;
+  }
+}
+.board{
+  display: flex;
+  justify-content: space-between;
+}
 .pedal{
   width: 200px;
   height: 300px;
   border-radius: 8px;
-  margin: 20px auto;
-  background-color: yellow;
+  margin: 20px 0;
   .light{
     padding-top: 6px;
     text-align: center;
@@ -60,4 +70,11 @@ body{
       background: black;
     }
   }
+}
+button{
+  margin: 0 10px;
+}
+.muteButton{
+  width: 50px;
+  margin-left: 50px;
 }

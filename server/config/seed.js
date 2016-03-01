@@ -6,6 +6,7 @@
 'use strict';
 import Thing from '../api/thing/thing.model';
 import User from '../api/user/user.model';
+import Pedal from '../api/pedal/pedal.model';
 
 Thing.find({}).removeAsync()
   .then(() => {
@@ -55,5 +56,114 @@ User.find({}).removeAsync()
     })
     .then(() => {
       console.log('finished populating users');
+    });
+  });
+
+Pedal.find({}).removeAsync()
+  .then(() => {
+    Pedal.create({
+      name: 'Overdrive',
+      type: 'Distortion',
+      color: 'yellow',
+      active: false,
+      knobs: [{
+          name: 'level',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "overdriveLevel"
+      }, {
+          name: 'drive',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "overdriveDrive"
+      }, {
+          name: 'tone',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "overdriveTone"
+      }, {
+          name: 'color',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "overdriveColor"
+      }]
+    }, {
+      name: 'Digital',
+      type: 'Delay',
+      color: 'beige',
+      active: false,
+      knobs: [{
+          name: 'level',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "delayLevel"
+      }, {
+          name: 'feedback',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "delayFeedback"
+      }, {
+          name: 'time',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "delayTime"
+      }]
+    },
+    {
+      name: 'Dynamic',
+      type: 'Filter',
+      color: 'slategrey',
+      active: false,
+      knobs: [{
+          name: 'sense',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "delayLevel"
+      }, {
+          name: 'cutoff',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "delayFeedback"
+      }, {
+          name: 'q',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "delayTime"
+      }]
+    },
+    {
+      name: ' ',
+      type: 'Flanger',
+      color: 'purple',
+      active: false,
+      knobs: [{
+          name: 'manual',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "delayLevel"
+      }, {
+          name: 'depth',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "delayFeedback"
+      }, {
+          name: 'rate',
+          value: 0,
+          lowRange: 0,
+          highRange: 100,
+          effect: "delayTime"
+      }]
     });
   });

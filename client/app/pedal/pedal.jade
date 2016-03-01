@@ -1,26 +1,33 @@
 .container
+  .muteButton.pull-right(ng-click='pedals.toggle()')
+    i.fa.fa-5x(ng-class='pedals.playing ? "fa-volume-off" :  "fa-volume-up"' )
   h1 Pedal-Board
+  button(class='btn btn-success' ng-click='pedals.startAudioStream()') Start Audio
+  button(class='btn btn-warning' ng-click='pedals.closeAudioStream()') Close Audio
+  .canvasContainer
+    canvas(height="200" id="visualizer")
+  .board
+    .pedal(ng-repeat='pedal in pedals.all' ng-style="{'background': pedal.color}")
+      .light
+        .checkLight(ng-class='{on: pedal.active}')
+        p check
+      ul.knobContainer
+        li(ng-repeat='knob in pedal.knobs')
+          .knob
+            .currentVal {{knob.value}}
+            .name {{knob.name}}
+            input.range(ng-model='knob.value'
+                        id='{{knob.name}}{{pedal.type}}'
+                        type='range'
+                        step=1
+                        min='{{knob.lowRange}}'
+                        max='{{knob.highRange}}'
+                        value='{{knob.value}}'
+                        ng-mouseup= 'pedals.changeGain()')
+      .bottomHalf(ng-click='pedal.active = !pedal.active')
+        h1 {{pedal.name}}
+        h3 {{pedal.type}}
+        .stompBox(ng-click='pedals.delay()')
 
-  h4 {{pedals}}
-.pedal(ng-repeat='pedal in pedals.testPedal')
-  .light
-    .checkLight(ng-class='{on: pedal.on}')
-    p check
-  ul.knobContainer
-    li(ng-repeat='knob in pedal.knobs')
-      .knob
-        .currentVal {{knob.value}}
-        .name {{knob.name}}
-        input.range(ng-model='knob.value'
-                    type='range'
-                    step=1
-                    min='{{knob.lowRange}}'
-                    max='{{knob.highRange}}'
-                    value='{{knob.value}}')
-  .bottomHalf(ng-click='pedal.on = !pedal.on')
-    h1 {{pedal.name}}
-    h3 {{pedal.type}}
-    .stompBox
 
-div(ng-click='pedals.toggle()')
-  i.fa.fa-5x(ng-class='pedals.playing ? "fa-volume-off" :  "fa-volume-up"' )
+h4 {{pedals}}

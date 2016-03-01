@@ -3,44 +3,79 @@
  function(){
   'use strict';
 
-angular.module('pedalBoardApp').service('getPedals', function(){
 
-});
-
-
-angular.module('pedalBoardApp').factory('connect', ['getPedals', function(){
-    navigator.getUserMedia = (navigator.getUserMedia ||
-                            navigator.webkitGetUserMedia ||
-                            navigator.mozGetUserMedia ||
-                            navigator.msGetUserMedia);
-
+angular.module('pedalBoardApp').factory('connect', ['visualizer', function(visualizer){
 
     var audioCtx = new AudioContext();
+    var source;
 
-    if(navigator.getUserMedia){
-      console.log('Connected!');
-      navigator.getUserMedia({
+    function startAudioStream(nav, ctx){
+      var stream  = nav.getUserMedia({
         audio:true
       }, function(stream){
-        var source = audioCtx.createMediaStreamSource(stream);
+        //set up variables
+        var analyser, outputMix, dryGain, wetGain,effectInput;
 
-        var biQuadFilter = audioCtx.createBiquadFilter();
-        biQuadFilter.type = 'lowshelf';
-        biQuadFilter.frequency.value = 800;
-        biQuadFilter.gain.value = 80;
+        //Grab streaming audio
 
-        source.connect(audioCtx.destination);
-        // biQuadFilter.connect(audioCtx.destination);
-      },
+        source = ctx.createMediaStreamSource(stream);
+
+        //Create effects nodes
+        outputMix = ctx.createGain();
+
+        outputMix.gain.value = 0;
+        dryGain = ctx.createGain();
+        dryGain.gain.value = 0;
+        wetGain = ctx.createGain();
+        wetGain.gain.value = 0;
+        effectInput = ctx.createGain();
+        effectInput.gain.value = 0;
+        analyser = ctx.createAnalyser();
+        source.connect(analyser);
+        source.connect(dryGain);
+        source.connect(wetGain);
+        source.connect(effectInput);
+        dryGain.connect(outputMix);
+        wetGain.connect(outputMix);
+        effectInput.connect(outputMix);
+        //outputMix.connect(ctx.destination);
+        //source.connect(ctx.destination);
+        console.log(visualizer);
+        visualizer(analyser);
+        console.log(source);
+        return source;
+        },
+        //Use canvas element to create waveform visualization
       function(err){
         console.log('Ran into the following error: ' + err);
       });
-    } else {
-      console.log('getUserMedia is not supported on your browser. Try Chrome!');
+
+      return stream;
+    }
+
+  function createDelay(){
+    console.log(audioCtx);
+    console.log('filters!');
+    var delayNode = audioCtx.createDelay();
+        delayNode.delayTime.value = 3;
+
+    var gainNode = audioCtx.createGain();
+    gainNode.gain.value = 0;
+
+    gainNode.connect(delayNode);
+    delayNode.connect(audioCtx.destination);
+    console.log('audioCtx');
+    console.log(audioCtx);
   }
+  console.log(source);
   return {
-    audioCtx: audioCtx
-  };
-}]);
+    audioCtx: audioCtx,
+    source: source,
+    delay: createDelay,
+    navigator: navigator,
+    startAudioStream: startAudioStream
+};
+}
+]);
 
 })();
