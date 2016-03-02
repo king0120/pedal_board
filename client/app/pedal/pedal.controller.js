@@ -12,6 +12,9 @@ function PedalsController(connect, $http) {
   vm.closeAudioStream = closeAudioStream;
   vm.playing = false;
   vm.gainLevel = 0;
+  vm.dryGain = connect.dryGain;
+
+  console.log(vm.dryGain);
 
   function startAudio (){
     navigator.getUserMedia = (navigator.getUserMedia ||

@@ -6,10 +6,10 @@
 
 angular.module('pedalBoardApp').factory('connect', ['visualizer', function(visualizer){
 
-    var audioCtx = new AudioContext();
-    var source;
-
-    function startAudioStream(nav, ctx){
+  var audioCtx = new AudioContext();
+  var source;
+  var dryGain;
+  function startAudioStream(nav, ctx){
       var stream  = nav.getUserMedia({
         audio:true
       }, function(stream){
@@ -40,7 +40,6 @@ angular.module('pedalBoardApp').factory('connect', ['visualizer', function(visua
         effectInput.connect(outputMix);
         //outputMix.connect(ctx.destination);
         //source.connect(ctx.destination);
-        console.log(visualizer);
         visualizer(analyser);
         console.log(source);
         return source;
@@ -49,7 +48,7 @@ angular.module('pedalBoardApp').factory('connect', ['visualizer', function(visua
       function(err){
         console.log('Ran into the following error: ' + err);
       });
-
+      console.log(stream);
       return stream;
     }
 
@@ -69,6 +68,7 @@ angular.module('pedalBoardApp').factory('connect', ['visualizer', function(visua
   }
   console.log(source);
   return {
+    dryGain: dryGain,
     audioCtx: audioCtx,
     source: source,
     delay: createDelay,
