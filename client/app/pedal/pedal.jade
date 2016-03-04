@@ -23,11 +23,12 @@
                         min='{{knob.lowRange}}'
                         max='{{knob.highRange}}'
                         value='{{knob.value}}'
-                        ng-mouseup= 'pedals.changeGain()')
+                        ng-mouseup= 'pedals.changeEffects()')
       .bottomHalf(ng-click='pedal.active = !pedal.active')
         h1 {{pedal.name}}
         h3 {{pedal.type}}
         .stompBox(ng-click='pedals.delay()')
 
 
+h3 {{pedals.dryGainLevel}}
 h4 {{pedals}}

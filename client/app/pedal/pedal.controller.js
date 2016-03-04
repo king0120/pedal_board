@@ -1,20 +1,86 @@
 (function() {
 'use strict';
 
-function PedalsController(connect, $http) {
+function PedalsController($http, visualizer) {
 
   var vm = this;
   vm.all = [];
-  vm.audioCtx = connect.audioCtx;
-  vm.delay = connect.delay;
-  vm.navigator = connect.navigator;
+  vm.audioCtx = new AudioContext();
+  vm.source;
+  vm.dryGain;
+  vm.dryGainLevel;
+  vm.navigator;
   vm.startAudioStream = startAudio;
   vm.closeAudioStream = closeAudioStream;
   vm.playing = false;
   vm.gainLevel = 0;
-  vm.dryGain = connect.dryGain;
+  vm.delayTime = 0;
+  vm.dryGain;
+  vm.repeat = 0;
 
   console.log(vm.dryGain);
+
+  function startAudioStream(nav, ctx){
+      nav.getUserMedia({
+        audio:true
+      }, function(stream){
+        //set up variables
+        var analyser, outputMix, dryGain, wetGain,effectInput;
+
+        //Grab streaming audio
+
+        vm.source = ctx.createMediaStreamSource(stream);
+
+        //Create effects nodes
+        outputMix = ctx.createGain();
+
+        outputMix.gain.value = 1;
+        vm.dryGain = ctx.createGain();
+        vm.dryGain.gain.value = vm.gainLevel;
+        vm.dryGainLevel = vm.dryGain.gain.value;
+
+
+        vm.delayNode = ctx.createDelay();
+        vm.delayNode.delayTime.value = vm.delayTime/5;
+        console.log('delay time');
+        console.log(vm.delayNode.delayTime);
+        // console.log('gain value');
+        // console.log(vm.dryGainLevel);
+        // console.log(vm.dryGain.gain.value);
+        wetGain = ctx.createGain();
+        wetGain.gain.value = 1;
+        effectInput = ctx.createGain();
+        effectInput.gain.value = 1;
+        analyser = ctx.createAnalyser();
+        vm.source.connect(analyser);
+        vm.source.connect(vm.dryGain);
+        vm.source.connect(wetGain);
+        vm.source.connect(effectInput);
+        vm.dryGain.connect(vm.delayNode);
+        vm.dryGain.connect(ctx.destination);
+        for (var i=0; i < vm.repeat; i++){
+          var delay = [];
+          delay[i] = ctx.createDelay();
+          var repeater = vm.delayTime * i;
+          delay[i].delayTime.value = repeater;
+          delay[i].connect(ctx.destination);
+          console.log(delay);
+          console.log(ctx.destination);
+        }
+        vm.delayNode.connect(ctx.destination);
+        wetGain.connect(outputMix);
+        effectInput.connect(outputMix);
+        //outputMix.connect(ctx.destination);
+        //vm.source.connect(ctx.destination);
+        visualizer(analyser);
+        console.log(vm.source);
+        },
+        //Use canvas element to create waveform visualization
+      function(err){
+        console.log('Ran into the following error: ' + err);
+      });
+      return vm.dryGainLevel;
+    }
 
   function startAudio (){
     navigator.getUserMedia = (navigator.getUserMedia ||
@@ -23,8 +89,8 @@ function PedalsController(connect, $http) {
                             navigator.msGetUserMedia);
     if(navigator.getUserMedia){
       console.log('Connected!');
-      var testSource = connect.startAudioStream(navigator, vm.audioCtx);
-      console.log(testSource)
+      var testSource = startAudioStream(navigator, vm.audioCtx);
+      console.log(testSource);
     } else {
       console.log('getUserMedia is not supported on your browser. Try Chrome!');
     }
@@ -39,13 +105,21 @@ function PedalsController(connect, $http) {
   }
 
   vm.changeGain = function (){
-    console.log(vm.source);
-    findPedal('test');
-    var gainNode = vm.audioCtx.createGain();
     var levelDistortion = $('#levelDistortion').val();
-    gainNode.gain.value = levelDistortion/10;
+    vm.gainLevel = levelDistortion/10;
     console.log(levelDistortion);
-    gainNode.connect(vm.audioCtx.destination);
+  };
+
+  vm.addDelay = function (){
+    var timeDelay = $('#timeDelay').val();
+    vm.delayTime = timeDelay/10;
+    console.log(vm.delayTime);
+  };
+
+  vm.addRepeat = function (){
+    var repeatDelay = $('#repeatDelay').val();
+    vm.repeat = repeatDelay/10;
+    console.log(vm.repeat);
   };
 
 
@@ -61,7 +135,13 @@ function PedalsController(connect, $http) {
     return vm.playing;
   };
 
-
+  vm.changeEffects = function(){
+    vm.closeAudioStream();
+    vm.changeGain();
+    vm.addDelay();
+    vm.addRepeat();
+    startAudio();
+  };
   function getPedals(){
     $http.get('/api/pedals')
          .then(function(response){
@@ -71,12 +151,16 @@ function PedalsController(connect, $http) {
   vm.getPedals = getPedals();
 
   function findPedal(pedalType){
+    console.log(pedalType);
     console.log(vm.all);
   }
   getPedals();
 
 }
 
-  angular.module('pedalBoardApp').controller('PedalsController', ['connect', '$http', PedalsController]);
+  angular.module('pedalBoardApp').controller('PedalsController',
+                                             [
+                                             '$http',
+                                             'visualizer',  PedalsController]);
 
 })();

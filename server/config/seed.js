@@ -97,7 +97,7 @@ Pedal.find({}).removeAsync()
       color: 'beige',
       active: false,
       knobs: [{
-          name: 'level',
+          name: 'repeat',
           value: 0,
           lowRange: 0,
           highRange: 100,
