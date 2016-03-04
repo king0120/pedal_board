@@ -38,6 +38,15 @@ function PedalsController($http, visualizer) {
 
         outputMix.gain.value = 1;
 
+        // Create a compressor node
+        var compressor = ctx.createDynamicsCompressor();
+        compressor.threshold.value = -50;
+        compressor.knee.value = 40;
+        compressor.ratio.value = 12;
+        compressor.reduction.value = -20;
+        compressor.attack.value = 0;
+        compressor.release.value = 0.25;
+
         //Overdrive Pedal
           vm.dryGain = ctx.createGain();
           vm.dryGain.gain.value = vm.gainLevel;
@@ -67,13 +76,14 @@ function PedalsController($http, visualizer) {
 
         //connections
         vm.source.connect(analyser);
-        vm.source.connect(vm.dryGain);
+        vm.source.connect(compressor);
+        compressor.connect(vm.dryGain);
 
         vm.dryGain.connect(ctx.destination);
         vm.dryGain.connect(vm.delayNode);
-        vm.source.connect(vm.delayNode);
+        compressor.connect(vm.delayNode);
         vm.delayNode.connect(vm.distortion);
-        vm.source.connect(vm.distortion);
+        compressor.connect(vm.distortion);
         vm.distortion.connect(ctx.destination);
 
         vm.delayNode.connect(ctx.destination);
