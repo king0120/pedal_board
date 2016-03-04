@@ -57,6 +57,8 @@ function PedalsController($http, visualizer) {
         vm.source.connect(vm.dryGain);
         vm.source.connect(wetGain);
         vm.source.connect(effectInput);
+        vm.distortion = ctx.createWaveShaper();
+        vm.distortion.curve = makeDistortionCurve(400 * vm.drive/100)
         vm.dryGain.connect(vm.delayNode);
         vm.dryGain.connect(ctx.destination);
         for (var i=0; i < vm.repeat; i++){
@@ -80,6 +82,15 @@ function PedalsController($http, visualizer) {
       function(err){
         console.log('Ran into the following error: ' + err);
       });
+
+      // Create delay effect node.
+      var delay = delay({
+          delayTime: 0.5,
+          feedback: 0.2,
+          level: 0.5
+      });
+      // Connect nodes.
+      tsw.connect(vm.source, delay, ctx.destination);
       return vm.dryGainLevel;
     }
 
@@ -123,6 +134,25 @@ function PedalsController($http, visualizer) {
     console.log(vm.repeat);
   };
 
+  vm.addDrive =function(){
+    var driveDistortion = $('#driveDistortion').val();
+    vm.drive = driveDistortion;
+  };
+
+
+  function makeDistortionCurve(amount) {
+  var k = typeof amount === 'number' ? amount : 50,
+    n_samples = 44100,
+    curve = new Float32Array(n_samples),
+    deg = Math.PI / 180,
+    i = 0,
+    x;
+  for ( ; i < n_samples; ++i ) {
+    x = i * 2 / n_samples - 1;
+    curve[i] = ( 3 + k ) * x * 20 * deg / ( Math.PI + k * Math.abs(x) );
+  }
+    return curve;
+  }
 
   vm.toggle = function(){
     console.log(vm.playing);
@@ -136,21 +166,12 @@ function PedalsController($http, visualizer) {
     return vm.playing;
   };
 
-  vm.distortion = function(){
-     if (!vm.waveshaper){
-        vm.waveshaper = new WaveShaper( vm.audioCtx );
-     }
-
-    vm.waveshaper.output.connect( vm.dryGain );
-    vm.waveshaper.setDrive(5.0);
-    return vm.waveshaper.input;
-  };
-
 
   vm.changeEffects = function(){
     vm.closeAudioStream();
     vm.changeGain();
     vm.addDelay();
+    vm.addDrive();
     vm.addRepeat();
     startAudio();
   };
@@ -174,116 +195,5 @@ function PedalsController($http, visualizer) {
                                              [
                                              '$http',
                                              'visualizer',  PedalsController]);
-
-
-  // Copyright 2011, Google Inc.
-// All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-var threshold = -27; // dB
-var headroom = 21; // dB
-var x;
-
-function e4(x, k)
-{
-    return 1.0 - Math.exp(-k * x);
-}
-
-function dBToLinear(db) {
-    return Math.pow(10.0, 0.05 * db);
-}
-
-function shape(x) {
-    var linearThreshold = dBToLinear(threshold);
-    var linearHeadroom = dBToLinear(headroom);
-
-    var maximum = 1.05 * linearHeadroom * linearThreshold;
-    var kk = (maximum - linearThreshold);
-
-    var sign = x < 0 ? -1 : +1;
-    var absx = Math.abs(x);
-
-    var shapedInput = absx < linearThreshold ? absx : linearThreshold + kk * e4(absx - linearThreshold, 1.0 / kk);
-    shapedInput *= sign;
-
-    return shapedInput;
-}
-
-function generateColortouchCurve(curve) {
-    var n = 65536;
-    var n2 = n / 2;
-
-    for (var i = 0; i < n2; ++i) {
-        x = i / n2;
-        x = shape(x);
-
-        curve[n2 + i] = x;
-        curve[n2 - i - 1] = -x;
-    }
-
-    return curve;
-}
-
-function generateMirrorCurve(curve) {
-    var n = 65536;
-    var n2 = n / 2;
-
-    for (var i = 0; i < n2; ++i) {
-        x = i / n2;
-        x = shape(x);
-
-        curve[n2 + i] = x;
-        curve[n2 - i - 1] = x;
-    }
-
-    return curve;
-}
-
-function WaveShaper(context) {
-    this.context = context;
-    var waveshaper = context.createWaveShaper();
-    var preGain = context.createGain();
-    var postGain = context.createGain();
-    preGain.connect(waveshaper);
-    waveshaper.connect(postGain);
-    this.input = preGain;
-    this.output = postGain;
-
-    var curve = new Float32Array(65536); // FIXME: share across instances
-    generateColortouchCurve(curve);
-    waveshaper.curve = curve;
-}
-
-WaveShaper.prototype.setDrive = function(drive) {
-    if (drive < 0.01) drive = 0.01;
-    this.input.gain.value = drive;
-    var postDrive = Math.pow(1 / drive, 0.6);
-    this.output.gain.value = postDrive;
-}
 
 })();
