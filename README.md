@@ -17,7 +17,7 @@
 ###Challenges
  - Web Audio API is still relatively new, and difficult to manipulate.
  <br>
-<img src='./client/assets/images/audioRoute.png'>
+<img src='http://imgur.com/dUo8tbX'>
  - Complicated math!
    - All of the effects and visualizations require parsing through
 
