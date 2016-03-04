@@ -6,6 +6,8 @@
   button(class='btn btn-warning' ng-click='pedals.closeAudioStream()') Close Audio
   .canvasContainer
     canvas(height="200" id="visualizer")
+
+  button.btn.btn-success(ng-click="pedals.distortion()") DISTORT!!
   .board
     .pedal(ng-repeat='pedal in pedals.all' ng-style="{'background': pedal.color}")
       .light
