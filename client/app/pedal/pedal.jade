@@ -1,17 +1,15 @@
 .container
   .muteButton.pull-right(ng-click='pedals.toggle()')
-    i.fa.fa-5x(ng-class='pedals.playing ? "fa-volume-off" :  "fa-volume-up"' )
-  h1 Pedal-Board
-  button(class='btn btn-success' ng-click='pedals.startAudioStream()') Start Audio
-  button(class='btn btn-warning' ng-click='pedals.closeAudioStream()') Close Audio
+    //- i.fa.fa-5x(ng-class='pedals.playing ? "fa-volume-off" :  "fa-volume-up"' )
   .canvasContainer
     canvas(height="200" id="visualizer")
-
-  button.btn.btn-success(ng-click="pedals.distortion()") DISTORT!!
+  .startStop
+    button(class='btn btn-success' ng-click='pedals.startAudioStream()') Start Audio
+    button(class='btn btn-warning' ng-click='pedals.closeAudioStream()') Stop Audio
   .board
     .pedal(ng-repeat='pedal in pedals.all' ng-style="{'background': pedal.color}")
       .light
-        .checkLight(ng-class='{on: pedal.active}')
+        .checkLight(id='{{pedal.type}}' ng-class='{on: pedal.active}')
         p check
       ul.knobContainer
         li(ng-repeat='knob in pedal.knobs')
@@ -26,11 +24,7 @@
                         max='{{knob.highRange}}'
                         value='{{knob.value}}'
                         ng-mouseup= 'pedals.changeEffects()')
-      .bottomHalf(ng-click='pedal.active = !pedal.active')
+      .bottomHalf(ng-click='pedals.stompBox(pedal)')
         h1 {{pedal.name}}
         h3 {{pedal.type}}
-        .stompBox(ng-click='pedals.delay()')
-
-
-h3 {{pedals.dryGainLevel}}
-h4 {{pedals}}
+        .stompBox

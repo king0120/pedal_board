@@ -117,7 +117,7 @@ Pedal.find({}).removeAsync()
       }]
     },
     {
-      name: 'Dynamic',
+      name: 'COMING SOON',
       type: 'Filter',
       color: 'slategrey',
       active: false,
@@ -142,7 +142,7 @@ Pedal.find({}).removeAsync()
       }]
     },
     {
-      name: ' ',
+      name: 'COMING SOON',
       type: 'Flanger',
       color: 'purple',
       active: false,

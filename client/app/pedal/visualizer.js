@@ -16,11 +16,11 @@
       function draw(){
         requestAnimationFrame(draw);
         audioData.getByteTimeDomainData(dataArray);
-        ctx.fillStyle = 'rgb(200,200,200)';
+        ctx.fillStyle = 'rgb(33,150,243)';
         ctx.fillRect(0,0,width,height);
 
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'rgb(0,0,0)';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgb(255,61,0)';
         ctx.beginPath();
 
         var sliceWidth = 500 / bufferLength;

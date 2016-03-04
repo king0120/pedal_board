@@ -18,6 +18,7 @@ function PedalsController($http, visualizer) {
   vm.dryGain;
   vm.repeat = 0;
   vm.waveshaper = null;
+  vm.stompBox = stompBox;
 
   console.log(vm.dryGain);
 
@@ -36,61 +37,55 @@ function PedalsController($http, visualizer) {
         outputMix = ctx.createGain();
 
         outputMix.gain.value = 1;
-        vm.dryGain = ctx.createGain();
-        vm.dryGain.gain.value = vm.gainLevel;
-        vm.dryGainLevel = vm.dryGain.gain.value;
+
+        //Overdrive Pedal
+          vm.dryGain = ctx.createGain();
+          vm.dryGain.gain.value = vm.gainLevel;
+          vm.dryGainLevel = vm.dryGain.gain.value;
+
+          vm.distortion = ctx.createWaveShaper();
+          vm.distortion.curve = makeDistortionCurve(400 * vm.drive/100);
 
 
-        vm.delayNode = ctx.createDelay();
-        vm.delayNode.delayTime.value = vm.delayTime/5;
-        console.log('delay time');
-        console.log(vm.delayNode.delayTime);
-        // console.log('gain value');
-        // console.log(vm.dryGainLevel);
-        // console.log(vm.dryGain.gain.value);
-        wetGain = ctx.createGain();
-        wetGain.gain.value = 1;
-        effectInput = ctx.createGain();
-        effectInput.gain.value = 1;
+
+
+        //Delay Pedal
+
+          vm.delayNode = ctx.createDelay();
+          vm.delayNode.delayTime.value = vm.delayTime/10;
+          var feedback = ctx.createGain();
+         feedback.gain.value = vm.repeat/100;
+          console.log('delay time');
+          console.log(vm.delayNode.delayTime);
+          vm.delayNode.connect(feedback);
+          feedback.connect(vm.delayNode);
+
+
+
+
         analyser = ctx.createAnalyser();
+
+        //connections
         vm.source.connect(analyser);
         vm.source.connect(vm.dryGain);
-        vm.source.connect(wetGain);
-        vm.source.connect(effectInput);
-        vm.distortion = ctx.createWaveShaper();
-        vm.distortion.curve = makeDistortionCurve(400 * vm.drive/100)
-        vm.dryGain.connect(vm.delayNode);
+
         vm.dryGain.connect(ctx.destination);
-        for (var i=0; i < vm.repeat; i++){
-          var delay = [];
-          delay[i] = ctx.createDelay();
-          var repeater = vm.delayTime * i;
-          delay[i].delayTime.value = repeater;
-          delay[i].connect(ctx.destination);
-          console.log(delay);
-          console.log(ctx.destination);
-        }
+        vm.dryGain.connect(vm.delayNode);
+        vm.source.connect(vm.delayNode);
+        vm.delayNode.connect(vm.distortion);
+        vm.source.connect(vm.distortion);
+        vm.distortion.connect(ctx.destination);
+
         vm.delayNode.connect(ctx.destination);
-        wetGain.connect(outputMix);
-        effectInput.connect(outputMix);
-        //outputMix.connect(ctx.destination);
-        //vm.source.connect(ctx.destination);
+
         visualizer(analyser);
-        console.log(vm.source);
+
         },
         //Use canvas element to create waveform visualization
       function(err){
         console.log('Ran into the following error: ' + err);
       });
 
-      // Create delay effect node.
-      var delay = delay({
-          delayTime: 0.5,
-          feedback: 0.2,
-          level: 0.5
-      });
-      // Connect nodes.
-      tsw.connect(vm.source, delay, ctx.destination);
       return vm.dryGainLevel;
     }
 
@@ -130,17 +125,19 @@ function PedalsController($http, visualizer) {
 
   vm.addRepeat = function (){
     var repeatDelay = $('#repeatDelay').val();
-    vm.repeat = repeatDelay/10;
+    vm.repeat = repeatDelay;
     console.log(vm.repeat);
   };
 
   vm.addDrive =function(){
+    console.log('add drive');
     var driveDistortion = $('#driveDistortion').val();
     vm.drive = driveDistortion;
   };
 
 
   function makeDistortionCurve(amount) {
+    console.log('makeDistortionCurve');
   var k = typeof amount === 'number' ? amount : 50,
     n_samples = 44100,
     curve = new Float32Array(n_samples),
@@ -169,10 +166,14 @@ function PedalsController($http, visualizer) {
 
   vm.changeEffects = function(){
     vm.closeAudioStream();
-    vm.changeGain();
-    vm.addDelay();
-    vm.addDrive();
-    vm.addRepeat();
+    if($('#Distortion').hasClass('on')){
+      vm.changeGain();
+      vm.addDrive();
+    }
+    if($('#Delay').hasClass('on')){
+      vm.addDelay();
+      vm.addRepeat();
+    }
     startAudio();
   };
   function getPedals(){
@@ -188,8 +189,14 @@ function PedalsController($http, visualizer) {
     console.log(vm.all);
   }
   getPedals();
+  function stompBox(pedal){
+    pedal.active = !pedal.active;
+    vm.changeEffects();
+  }
+
 
 }
+
 
   angular.module('pedalBoardApp').controller('PedalsController',
                                              [
